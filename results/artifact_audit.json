@@ -1,0 +1,85 @@
+{
+  "pages": 15,
+  "automated_tests": 55,
+  "synthetic_cases": 47,
+  "local_links_valid": true,
+  "status_consistency": true,
+  "pdf_sha256": "17f8705ec9fba4d4a3af185beccf1e62d32489f54b7944ede4b5f3d5ba5f16a7",
+  "page_checks": [
+    {
+      "page": 1,
+      "characters": 1333,
+      "text_inside_margins": true
+    },
+    {
+      "page": 2,
+      "characters": 2444,
+      "text_inside_margins": true
+    },
+    {
+      "page": 3,
+      "characters": 2677,
+      "text_inside_margins": true
+    },
+    {
+      "page": 4,
+      "characters": 2106,
+      "text_inside_margins": true
+    },
+    {
+      "page": 5,
+      "characters": 3240,
+      "text_inside_margins": true
+    },
+    {
+      "page": 6,
+      "characters": 3283,
+      "text_inside_margins": true
+    },
+    {
+      "page": 7,
+      "characters": 3113,
+      "text_inside_margins": true
+    },
+    {
+      "page": 8,
+      "characters": 2965,
+      "text_inside_margins": true
+    },
+    {
+      "page": 9,
+      "characters": 2628,
+      "text_inside_margins": true
+    },
+    {
+      "page": 10,
+      "characters": 2053,
+      "text_inside_margins": true
+    },
+    {
+      "page": 11,
+      "characters": 1856,
+      "text_inside_margins": true
+    },
+    {
+      "page": 12,
+      "characters": 3046,
+      "text_inside_margins": true
+    },
+    {
+      "page": 13,
+      "characters": 2951,
+      "text_inside_margins": true
+    },
+    {
+      "page": 14,
+      "characters": 2283,
+      "text_inside_margins": true
+    },
+    {
+      "page": 15,
+      "characters": 1716,
+      "text_inside_margins": true
+    }
+  ]
+}

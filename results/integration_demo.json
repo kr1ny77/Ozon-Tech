@@ -1,0 +1,14 @@
+{
+  "first_delivery": {
+    "delivered": 47,
+    "pending": 0
+  },
+  "repeat_delivery": {
+    "delivered": 0,
+    "pending": 0
+  },
+  "receiver_duplicate_confirmed": true,
+  "conflict_status": 409,
+  "receiver": "scripts/wms_demo_server.py on ephemeral localhost port",
+  "passed": true
+}

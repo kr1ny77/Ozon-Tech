@@ -1,0 +1,55 @@
+{
+  "seed": 42,
+  "total_cases": 47,
+  "reference_evaluable_cases": 34,
+  "reference_pass_count": 34,
+  "reference_pass_rate": 1.0,
+  "nominal_accepted_count": 32,
+  "nominal_review_count": 2,
+  "nominal_acceptance_rate": 0.9411764705882353,
+  "review_count": 13,
+  "accepted_reference_cases": 32,
+  "accepted_reference_failure_count": 0,
+  "error_max_mm": 1.2829954517864195,
+  "error_p95_mm": 1.2560984761248124,
+  "processing_p50_ms": 97.33425000013085,
+  "processing_p95_ms": 329.14274199865685,
+  "processing_max_ms": 499.73641699762084,
+  "environment": {
+    "python": "3.12.14",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "processor": "arm"
+  },
+  "coverage": [
+    {
+      "sensor": "top",
+      "min_depth_mm": 916.90481051547,
+      "max_depth_mm": 1500.0,
+      "min_half_field_margin_mm": 194.2513917802973,
+      "depth_span_mm": 583.09518948453,
+      "inside_nominal_envelope": true
+    },
+    {
+      "sensor": "left",
+      "min_depth_mm": 776.6687367643574,
+      "max_depth_mm": 1564.1751294584756,
+      "min_half_field_margin_mm": 195.609001562394,
+      "depth_span_mm": 787.5063926941182,
+      "inside_nominal_envelope": true
+    },
+    {
+      "sensor": "right",
+      "min_depth_mm": 776.6687367643574,
+      "max_depth_mm": 1564.1751294584756,
+      "min_half_field_margin_mm": 195.609001562394,
+      "depth_span_mm": 787.5063926941182,
+      "inside_nominal_envelope": true
+    }
+  ],
+  "limitations": [
+    "Synthetic idealized geometry; no physical hardware measurements",
+    "Qualification flags supplied by scenario; no material classifier",
+    "Hull/SLSQP OBB is approximate; arbitrary global optimum uncertified",
+    "Camera occlusion, refraction, radiometry and conveyor mechanics omitted"
+  ]
+}

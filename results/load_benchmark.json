@@ -1,0 +1,88 @@
+{
+  "purpose": "OBB kernel only; repeated point-count and curved-surface tests",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "python": "3.12.14",
+  "timing_scope": "Five observations per shape; target IPC and production p99 remain unmeasured",
+  "runs": [
+    {
+      "shape": "box_interior",
+      "points": 100000,
+      "hull_vertices": 8,
+      "repeats": 5,
+      "obb_ms_runs": [
+        47.72995800158242,
+        47.13712499869871,
+        47.43037500156788,
+        47.38345900113927,
+        47.73512499741628
+      ],
+      "obb_ms": 47.43037500156788,
+      "max_ms": 47.73512499741628,
+      "passed": true
+    },
+    {
+      "shape": "box_interior",
+      "points": 1000000,
+      "hull_vertices": 8,
+      "repeats": 5,
+      "obb_ms_runs": [
+        178.02295799992862,
+        179.68362499959767,
+        178.45116699754726,
+        179.25916599779157,
+        179.29237499993178
+      ],
+      "obb_ms": 179.25916599779157,
+      "max_ms": 179.68362499959767,
+      "passed": true
+    },
+    {
+      "shape": "box_interior",
+      "points": 3700000,
+      "hull_vertices": 8,
+      "repeats": 5,
+      "obb_ms_runs": [
+        562.8595419984777,
+        565.4981669977133,
+        571.8887500006531,
+        563.675166999019,
+        561.6659580009582
+      ],
+      "obb_ms": 563.675166999019,
+      "max_ms": 571.8887500006531,
+      "passed": true
+    },
+    {
+      "shape": "ellipsoid_surface",
+      "points": 1000,
+      "hull_vertices": 1000,
+      "repeats": 5,
+      "obb_ms_runs": [
+        557.7362080002786,
+        558.317499999248,
+        558.8432919976185,
+        561.1187089998566,
+        555.6066249992
+      ],
+      "obb_ms": 558.317499999248,
+      "max_ms": 561.1187089998566,
+      "passed": true
+    },
+    {
+      "shape": "ellipsoid_surface",
+      "points": 3000,
+      "hull_vertices": 3000,
+      "repeats": 5,
+      "obb_ms_runs": [
+        581.6806250004447,
+        578.4544160014775,
+        581.6539580009703,
+        582.7398340006766,
+        584.6141660003923
+      ],
+      "obb_ms": 581.6806250004447,
+      "max_ms": 584.6141660003923,
+      "passed": true
+    }
+  ]
+}

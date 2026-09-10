@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ozon-dimensioner"
+version = "0.2.1"
+description = "Conveyor dimensioning: geometric prototype and engineering report"
+requires-python = ">=3.11"
+dependencies = ["numpy==2.3.5", "scipy==1.16.3"]
+
+[project.optional-dependencies]
+dev = ["pytest==9.0.2", "ruff==0.12.12"]
+report = ["matplotlib==3.10.8", "reportlab==4.4.9", "pillow==12.3.0", "pypdf==6.10.0", "pdfplumber==0.11.9"]
+
+[project.scripts]
+ozon-dimensioner = "ozon_dimensioner.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82", "F401", "F841"]
