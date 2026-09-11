@@ -8,6 +8,7 @@ import tempfile
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from ozon_dimensioner.outbox import Outbox, http_sender
+from ozon_dimensioner.resolution import resolve_review
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,6 +25,17 @@ def run():
         assert line.startswith("WMS demo: http://127.0.0.1:"), line
         url = line.removeprefix("WMS demo: ")
         payloads = json.loads((ROOT / "results/measurements.json").read_text())
+        record = json.loads(
+            (ROOT / "docs/examples/reference_measurement.json").read_text()
+        )
+        original = next(
+            p for p in payloads if p["measurement_id"] == record["resolution_of"]
+        )
+        resolved = resolve_review(original, record)
+        (ROOT / "results/resolved_measurement.json").write_text(
+            json.dumps(resolved, indent=2) + "\n"
+        )
+        payloads.append(resolved)
         with tempfile.TemporaryDirectory(prefix="ozon-wms-") as temp:
             outbox = Outbox(Path(temp) / "queue.sqlite")
             try:
@@ -64,11 +76,29 @@ def run():
         assert first == {"delivered": len(payloads), "pending": 0}
         assert second == {"delivered": 0, "pending": 0}
         assert duplicate and conflict_status == 409
+        with post(resolved) as response:
+            confirmation = json.load(response)
+        assert (
+            confirmation["duplicate"]
+            and confirmation["resolution_of"] == original["measurement_id"]
+        )
+        try:
+            with post(
+                {**resolved, "measurement_id": resolved["measurement_id"] + "-conflict"}
+            ):
+                raise AssertionError(
+                    "A second resolution of the same review was accepted"
+                )
+        except HTTPError as error:
+            assert error.code == 409
         result = {
             "first_delivery": first,
             "repeat_delivery": second,
             "receiver_duplicate_confirmed": duplicate,
             "conflict_status": conflict_status,
+            "resolved_review_count": 1,
+            "resolution_link_verified": True,
+            "second_resolution_conflict_status": 409,
             "receiver": "scripts/wms_demo_server.py on ephemeral localhost port",
             "passed": True,
         }

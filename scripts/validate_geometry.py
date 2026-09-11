@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import differential_evolution
 from scipy.spatial.transform import Rotation
-from ozon_dimensioner.geometry import minimum_box, box_in_frame
+from ozon_dimensioner.geometry import minimum_box, box_in_frame, dimension_errors
 from ozon_dimensioner.simulation import wedge, l_shape
 
 
@@ -13,6 +13,10 @@ def run():
     cases = [
         (mesh.name, mesh.placed((21, 37, 19)).vertices) for mesh in (wedge(), l_shape())
     ]
+    base = np.array([[0, 0], [150, 0], [120, 50], [20, 75], [-10, 25]])
+    prism = np.array([[x, y, z] for z in (0, 55) for x, y in base], float)
+    prism = prism @ Rotation.from_euler("xyz", [29, 11, 53], degrees=True).as_matrix().T
+    cases.append(("asymmetric_prism", prism))
     for seed in [10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]:
         rng = np.random.default_rng(seed)
         points = rng.normal(size=(10 if seed == 10 else 24, 3)) * [80, 60, 40]
@@ -54,6 +58,22 @@ def run():
             assert witness.contains(p).all()
             witnesses.append(witness.as_dict())
         ratio = box.volume / min(w["volume_mm3"] for w in witnesses)
+        if name == "wedge":
+            hypotenuse = float(np.hypot(180, 90))
+            references = [[180, 120, 90], [hypotenuse, 120, 180 * 90 / hypotenuse]]
+            reference_kind = "analytic_equal_volume_boxes"
+        else:
+            best_volume = min(w["volume_mm3"] for w in witnesses)
+            references = [
+                w["dimensions_mm"]
+                for w in witnesses
+                if w["volume_mm3"] <= best_volume * (1 + 1e-6)
+            ]
+            reference_kind = "independent_numerical_witnesses"
+        edge_errors = min(
+            (dimension_errors(box.extents, ref) for ref in references),
+            key=lambda error: max(error["normalized"]),
+        )
         row = {
             "shape": name,
             "points_mm": p.tolist(),
@@ -62,19 +82,33 @@ def run():
             "ratio_to_best_de": ratio,
             "all_points_enclosed": bool(box.contains(p).all()),
             "within_numerical_comparison_limit": bool(ratio <= 1.005),
+            "edge_reference_kind": reference_kind,
+            "edge_reference_dimensions_mm": references,
+            "edge_errors": edge_errors,
         }
         rows.append(row)
-        print(name, f"ratio={ratio:.8f}", flush=True)
+        print(
+            name,
+            f"ratio={ratio:.8f}",
+            f"edge_max={max(edge_errors['normalized']):.4f}",
+            flush=True,
+        )
     result = {
         "configuration": "minimum_box defaults, identical to pipeline",
         "cases": len(rows),
         "volume_comparison_limit": 1.005,
         "max_ratio_to_best_de": max(r["ratio_to_best_de"] for r in rows),
+        "edge_pass_count": sum(r["edge_errors"]["passed"] for r in rows),
+        "max_normalized_edge_difference": max(
+            max(r["edge_errors"]["normalized"]) for r in rows
+        ),
         "passed": all(
-            r["within_numerical_comparison_limit"] and r["all_points_enclosed"]
+            r["within_numerical_comparison_limit"]
+            and r["all_points_enclosed"]
+            and r["edge_errors"]["passed"]
             for r in rows
         ),
-        "scope": "Numerical volume cross-check; per-edge tolerance and global optimality require separate evidence",
+        "scope": "Volume and per-edge comparison with analytic wedge alternatives and independent numerical witnesses; arbitrary global optimality remains uncertified",
         "runs": rows,
     }
     Path("results/geometry_crosscheck.json").write_text(

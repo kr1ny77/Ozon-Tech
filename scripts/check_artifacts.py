@@ -20,10 +20,21 @@ assert sum(p["status"] == "review" for p in measurements) == summary["review_cou
 assert len({p["measurement_id"] for p in measurements}) == len(measurements)
 for p in measurements:
     assert p["data_origin"] == "synthetic"
+    assert (
+        p["schema_version"] == "1.1"
+        and p["dimension_convention"] == "obb_edges_descending"
+    )
     if p["status"] == "review":
         assert p["dimensions_mm"] is None and p["reasons"]
+        assert (
+            p["obb_dimensions_sorted_mm"] is None
+            and p["height_z_mm"] is None
+            and p["obb_axes"] is None
+        )
     if p["status"] == "ok":
         assert p["dimensions_mm"] and not p["reasons"]
+        assert p["obb_dimensions_sorted_mm"] == list(p["dimensions_mm"].values())
+        assert p["obb_axes"] == p["candidate_box"]["axes"] and p["height_z_mm"] > 0
 for root in [ROOT / "README.md", ROOT / "docs/report.md", ROOT / "docs/acceptance.md"]:
     for target in re.findall(r"\]\(([^)]+)\)", root.read_text()):
         if target.startswith(("http:", "https:", "#")):
@@ -71,6 +82,8 @@ assert str(summary["reference_pass_count"]) in full
 geometry = json.loads((ROOT / "results/geometry_crosscheck.json").read_text())
 assert geometry["passed"] and len(geometry["runs"]) == geometry["cases"]
 assert geometry["configuration"] == "minimum_box defaults, identical to pipeline"
+assert geometry["edge_pass_count"] == geometry["cases"]
+assert all(row["edge_errors"]["passed"] for row in geometry["runs"])
 assert summary["accepted_reference_failure_count"] == 0
 package = tomllib.loads((ROOT / "pyproject.toml").read_text())
 assert package["project"]["version"] == __version__
@@ -88,8 +101,27 @@ for group in [
     cases = [p for p in measurements if p["case_group"] == group]
     assert cases and all(p["status"] == "review" for p in cases)
 delivery = json.loads((ROOT / "results/integration_demo.json").read_text())
-assert delivery["passed"] and delivery["first_delivery"]["delivered"] == len(
-    measurements
+assert (
+    delivery["passed"]
+    and delivery["first_delivery"]["delivered"]
+    == len(measurements) + delivery["resolved_review_count"]
+)
+assert (
+    delivery["resolution_link_verified"]
+    and delivery["second_resolution_conflict_status"] == 409
+)
+resolved = json.loads((ROOT / "results/resolved_measurement.json").read_text())
+original = next(
+    p for p in measurements if p["measurement_id"] == resolved["resolution_of"]
+)
+assert original["status"] == "review" and resolved["status"] == "ok"
+assert (
+    resolved["algorithm_version"] == __version__
+    and resolved["data_origin"] == "synthetic"
+)
+assert (
+    resolved["dimensions_mm"]
+    and resolved["measurement_id"] != original["measurement_id"]
 )
 assert delivery["repeat_delivery"] == {"delivered": 0, "pending": 0}
 assert delivery["receiver_duplicate_confirmed"] and delivery["conflict_status"] == 409

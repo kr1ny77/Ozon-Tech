@@ -83,10 +83,23 @@ def test_irregular_hull_regression_against_independent_feasible_box():
     np.testing.assert_allclose(b.axes.T @ b.axes, np.eye(3), atol=1e-9)
 
 
-def test_curved_surface_with_many_hull_vertices():
-    p = np.random.default_rng(444).normal(size=(3000, 3))
+@pytest.mark.parametrize("count", [1000, 3000, 10000])
+def test_curved_surface_with_many_hull_vertices(count):
+    p = np.random.default_rng(444).normal(size=(count, 3))
     p = p / np.linalg.norm(p, axis=1)[:, None] * [200, 150, 150]
+    p = p @ Rotation.from_euler("xyz", [19, 37, 61], degrees=True).as_matrix().T
     b = minimum_box(p)
     assert b.contains(p).all()
     assert dimension_errors(b.extents, [400, 300, 300])["passed"]
     assert b.volume <= 400 * 300 * 300
+
+
+def test_wedge_equal_minima_use_canonical_edges():
+    p = wedge().placed((21, 37, 19)).vertices
+    b = minimum_box(p)
+    np.testing.assert_allclose(b.extents, [180, 120, 90], atol=1e-5)
+    # The hypotenuse-aligned box has the same volume and different edge lengths.
+    hypotenuse = np.hypot(180, 90)
+    alternative = [hypotenuse, 120, 180 * 90 / hypotenuse]
+    assert np.prod(alternative) == pytest.approx(b.volume)
+    assert not dimension_errors(b.extents, alternative)["passed"]

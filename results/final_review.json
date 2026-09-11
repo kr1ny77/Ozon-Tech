@@ -1,17 +1,19 @@
 {
-  "algorithm_version": "0.2.1",
-  "code_and_test_sha256": "92b7922161bcaeaf87202fc3b90dd413c7fc2ec1c46030c51194cb55fdbb578a",
+  "algorithm_version": "0.3.0",
+  "code_and_test_sha256": "f44e8d63eedd0521a456dc43c1023741e6414fddbe56423cc7ac9dfa2749c6e7",
   "clean_install": {
-    "python": "3.12",
+    "python": "3.12.14",
     "dependencies": "requirements-lock.txt",
     "pip_check": "passed",
-    "tests_passed": 55,
+    "tests_passed": 74,
     "cli_measure": "passed from outside the repository",
     "format_check": "passed; Ruff 0.12.12",
-    "static_analysis": "passed; Ruff 0.12.12"
+    "static_analysis": "passed; Ruff 0.12.12",
+    "cli_resolve": "passed from outside the repository",
+    "package_version": "0.3.0"
   },
   "visual_review": {
-    "pages_reviewed": 15,
+    "pages_reviewed": 17,
     "layout": "passed",
     "tables_and_figures": "passed"
   },
@@ -23,13 +25,15 @@
     "accepted_reference_failures": 0
   },
   "independent_geometry": {
-    "cases": 26,
-    "max_volume_ratio_to_witness": 1.0047964494054353,
-    "passed": true
+    "cases": 27,
+    "max_volume_ratio_to_witness": 1.001870583262287,
+    "passed": true,
+    "edge_pass_count": 27,
+    "max_normalized_edge_difference": 0.14902696729622186
   },
   "delivery": {
     "first_delivery": {
-      "delivered": 47,
+      "delivered": 48,
       "pending": 0
     },
     "repeat_delivery": {
@@ -38,6 +42,9 @@
     },
     "receiver_duplicate_confirmed": true,
     "conflict_status": 409,
+    "resolved_review_count": 1,
+    "resolution_link_verified": true,
+    "second_resolution_conflict_status": 409,
     "receiver": "scripts/wms_demo_server.py on ephemeral localhost port",
     "passed": true
   },
@@ -50,9 +57,24 @@
     "Synthetic measurements; physical acceptance remains required",
     "Numerical OBB with explicit global_optimum_certified=false",
     "Conservative review decisions reduce automatic coverage",
-    "Arbitrary materials and hidden surfaces require separate physical validation"
+    "Arbitrary materials and hidden surfaces require separate physical validation",
+    "Two-worker throughput and IPC p95/p99 require a physical load test",
+    "Review completion requires a qualified external reference measurement protocol"
   ],
   "package_version_consistent": true,
-  "review_date": "2026-09-10",
-  "pdf_sha256": "17f8705ec9fba4d4a3af185beccf1e62d32489f54b7944ede4b5f3d5ba5f16a7"
+  "review_date": "2026-09-11",
+  "pdf_sha256": "effbbe1a1af48bac8fdd47cdb020860a56a5478227d0f372246afe715938ab5a",
+  "combined_load": {
+    "points": 3700000,
+    "hull_vertices": 10000,
+    "obb_ms": 1892.792874998122,
+    "max_ms": 2103.4208749988466,
+    "pipeline_median_ms": 2363.1225420031114,
+    "pipeline_max_ms": 2464.4516670014127,
+    "pipeline_status": "review",
+    "pipeline_reasons": [
+      "disconnected_cloud"
+    ],
+    "passed": true
+  }
 }

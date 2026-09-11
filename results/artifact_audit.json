@@ -1,10 +1,10 @@
 {
-  "pages": 15,
-  "automated_tests": 55,
+  "pages": 17,
+  "automated_tests": 74,
   "synthetic_cases": 47,
   "local_links_valid": true,
   "status_consistency": true,
-  "pdf_sha256": "17f8705ec9fba4d4a3af185beccf1e62d32489f54b7944ede4b5f3d5ba5f16a7",
+  "pdf_sha256": "effbbe1a1af48bac8fdd47cdb020860a56a5478227d0f372246afe715938ab5a",
   "page_checks": [
     {
       "page": 1,
@@ -13,7 +13,7 @@
     },
     {
       "page": 2,
-      "characters": 2444,
+      "characters": 2652,
       "text_inside_margins": true
     },
     {
@@ -28,7 +28,7 @@
     },
     {
       "page": 5,
-      "characters": 3240,
+      "characters": 3527,
       "text_inside_margins": true
     },
     {
@@ -43,42 +43,52 @@
     },
     {
       "page": 8,
-      "characters": 2965,
+      "characters": 3109,
       "text_inside_margins": true
     },
     {
       "page": 9,
-      "characters": 2628,
+      "characters": 2795,
       "text_inside_margins": true
     },
     {
       "page": 10,
-      "characters": 2053,
+      "characters": 3115,
       "text_inside_margins": true
     },
     {
       "page": 11,
-      "characters": 1856,
+      "characters": 2053,
       "text_inside_margins": true
     },
     {
       "page": 12,
-      "characters": 3046,
+      "characters": 1857,
       "text_inside_margins": true
     },
     {
       "page": 13,
-      "characters": 2951,
+      "characters": 2993,
       "text_inside_margins": true
     },
     {
       "page": 14,
-      "characters": 2283,
+      "characters": 2695,
       "text_inside_margins": true
     },
     {
       "page": 15,
-      "characters": 1716,
+      "characters": 3072,
+      "text_inside_margins": true
+    },
+    {
+      "page": 16,
+      "characters": 2285,
+      "text_inside_margins": true
+    },
+    {
+      "page": 17,
+      "characters": 1823,
       "text_inside_margins": true
     }
   ]

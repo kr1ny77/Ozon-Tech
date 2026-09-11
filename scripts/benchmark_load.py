@@ -9,6 +9,7 @@ from scipy.spatial import ConvexHull
 from scipy.spatial.transform import Rotation
 from ozon_dimensioner.geometry import minimum_box, dimension_errors
 from ozon_dimensioner.simulation import cuboid
+from ozon_dimensioner.pipeline import measure, AcquisitionQuality
 
 
 def run():
@@ -20,6 +21,8 @@ def run():
         ("box_interior", 3_700_000),
         ("ellipsoid_surface", 1000),
         ("ellipsoid_surface", 3000),
+        ("ellipsoid_surface", 10000),
+        ("ellipsoid_with_interior", 3_700_000),
     ]:
         if kind == "box_interior":
             corners = cuboid((400, 300, 300)).placed((0, 0, 27)).vertices
@@ -31,8 +34,19 @@ def run():
             ]
             p = np.vstack((p, corners))
         else:
-            p = np.random.default_rng(444).normal(size=(count, 3))
-            p = p / np.linalg.norm(p, axis=1)[:, None] * [200, 150, 150] + [0, 0, 150]
+            shell_count = 10000 if kind == "ellipsoid_with_interior" else count
+            p = np.random.default_rng(444).normal(size=(shell_count, 3))
+            p = p / np.linalg.norm(p, axis=1)[:, None] * [200, 150, 150]
+            if kind == "ellipsoid_with_interior":
+                interior = rng.uniform(-0.45, 0.45, (count - shell_count, 3)) * [
+                    200,
+                    150,
+                    150,
+                ]
+                p = np.vstack((p, interior))
+            p = p @ Rotation.from_euler(
+                "xyz", [19, 37, 61], degrees=True
+            ).as_matrix().T + [0, 0, 300]
         hull_vertices = len(ConvexHull(p).vertices)
         minimum_box(p)
         times = []
@@ -55,13 +69,38 @@ def run():
             "max_ms": max(times),
             "passed": passed,
         }
+        if kind == "ellipsoid_with_interior" or (
+            kind == "ellipsoid_surface" and count == 10000
+        ):
+            ids = np.arange(count, dtype=np.int32) % 3
+            pipeline_times = []
+            for repeat in range(3):
+                start = time.perf_counter()
+                payload = measure(
+                    p,
+                    f"load-{kind}-{repeat}",
+                    AcquisitionQuality(100, 100, True, True, True),
+                    ids,
+                    calibration_id="synthetic-load",
+                )
+                pipeline_times.append((time.perf_counter() - start) * 1000)
+                assert payload["candidate_box"] is not None
+            row.update(
+                {
+                    "pipeline_ms_runs": pipeline_times,
+                    "pipeline_median_ms": float(np.median(pipeline_times)),
+                    "pipeline_max_ms": max(pipeline_times),
+                    "pipeline_status": payload["status"],
+                    "pipeline_reasons": payload["reasons"],
+                }
+            )
         rows.append(row)
         print(row, flush=True)
     result = {
-        "purpose": "OBB kernel only; repeated point-count and curved-surface tests",
+        "purpose": "OBB kernel and full measure function; combined point-count and hull-complexity tests",
         "platform": platform.platform(),
         "python": platform.python_version(),
-        "timing_scope": "Five observations per shape; target IPC and production p99 remain unmeasured",
+        "timing_scope": "Five kernel observations per shape and three full measure observations for complex cases; target IPC and production p99 remain unmeasured",
         "runs": rows,
     }
     Path("results/load_benchmark.json").write_text(json.dumps(result, indent=2) + "\n")

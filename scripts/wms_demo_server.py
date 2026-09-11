@@ -10,6 +10,7 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     received = {}
+    resolved = {}
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):
@@ -30,9 +31,25 @@ def main():
             if key in received and received[key] != payload:
                 self.send_error(409)
                 return
+            parent = payload.get("resolution_of")
+            if parent is not None:
+                if (
+                    not isinstance(parent, str)
+                    or parent not in received
+                    or received[parent].get("status") != "review"
+                    or received[parent].get("item_id") != payload.get("item_id")
+                    or payload.get("status") != "ok"
+                    or payload.get("dimensions_mm") is None
+                    or (parent in resolved and resolved[parent] != key)
+                ):
+                    self.send_error(409)
+                    return
+                resolved[parent] = key
             duplicate = key in received
             received[key] = payload
-            body = json.dumps({"measurement_id": key, "duplicate": duplicate}).encode()
+            body = json.dumps(
+                {"measurement_id": key, "duplicate": duplicate, "resolution_of": parent}
+            ).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))

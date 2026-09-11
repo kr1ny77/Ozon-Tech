@@ -153,15 +153,32 @@ def build():
         for row in load["runs"]
         if row["shape"] == "ellipsoid_surface" and row["points"] == 3000
     )
+    stress = next(
+        row
+        for row in load["runs"]
+        if row["shape"] == "ellipsoid_surface" and row["points"] == 10000
+    )
+    combined = next(
+        row for row in load["runs"] if row["shape"] == "ellipsoid_with_interior"
+    )
     values = {
         **summary,
         "tests_count": count,
         "platform": summary["environment"]["platform"],
         "python_version": summary["environment"]["python"],
         "load_max_ms": large["obb_ms"],
+        "load_peak_ms": large["max_ms"],
         "curved_median_ms": curved["obb_ms"],
         "curved_max_ms": curved["max_ms"],
+        "stress_median_ms": stress["obb_ms"],
+        "stress_max_ms": stress["max_ms"],
+        "combined_median_ms": combined["obb_ms"],
+        "combined_max_ms": combined["max_ms"],
+        "pipeline_stress_median_ms": combined["pipeline_median_ms"],
+        "pipeline_stress_max_ms": combined["pipeline_max_ms"],
         "geometry_cases": geometry["cases"],
+        "geometry_edge_pass_count": geometry["edge_pass_count"],
+        "geometry_edge_max_normalized": geometry["max_normalized_edge_difference"],
         "geometry_max_ratio": f"{geometry['max_ratio_to_best_de']:.6f}".replace(
             ".", ","
         ),
@@ -185,10 +202,12 @@ def build():
         f"Во всей серии: {summary['review_count']} результатов `review`, "
         f"ошибочных принятий среди {summary['accepted_reference_cases']} принятых случаев с эталоном "
         f"- {summary['accepted_reference_failure_count']}. Полная статистика: [benchmark.csv](results/benchmark.csv).\n\n"
-        f"Успешно выполнены {count} автоматических тестов. Независимый численный поиск проверяет "
+        f"Автоматические тесты: {count}, все прошли. Независимый численный поиск проверяет "
         f"{geometry['cases']} полных облаков в той же конфигурации, что использует CLI. "
         f"Максимальное превышение объёма относительно лучшего независимого решения "
         f"- {100 * (geometry['max_ratio_to_best_de'] - 1):.3f}%. "
+        f"Покомпонентное сравнение рёбер прошло на {geometry['edge_pass_count']} облаках; "
+        "равные минимумы клина учитываются отдельно. "
         "Точки и найденные коробки: [geometry_crosscheck.json](results/geometry_crosscheck.json).\n\n"
         "Скрытый сбой энкодера, одиночные и групповые ложные отражения, недостаточные ракурсы "
         "и отсутствующие подтверждения качества направляются на повторную проверку. "

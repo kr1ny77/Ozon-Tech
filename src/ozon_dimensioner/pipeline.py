@@ -25,7 +25,28 @@ def cloud_components(points, cell_mm=4.0):
     Original extrema are retained. Disconnected reflections and disconnected
     genuine protrusions both need a repeat scan; neither is silently discarded.
     """
-    cells = np.unique(np.floor(points / cell_mm), axis=0)
+    cells = np.floor(points / cell_mm)
+    if not len(cells):
+        return 0
+    origin = cells.min(axis=0)
+    span = cells.max(axis=0) - origin
+    if np.all(span <= 1_000_000):
+        # Scalar cell codes preserve the exact occupied grid while avoiding
+        # a lexicographic sort of millions of three-column rows.
+        shape = span.astype(np.int64) + 1
+        indices = (cells - origin).astype(np.int64)
+        codes = np.unique(
+            (indices[:, 0] * shape[1] + indices[:, 1]) * shape[2] + indices[:, 2]
+        )
+        cells = np.column_stack(
+            (
+                codes // (shape[1] * shape[2]),
+                codes // shape[2] % shape[1],
+                codes % shape[2],
+            )
+        )
+    else:
+        cells = np.unique(cells, axis=0)
     if len(cells) < 2:
         return len(cells)
     pairs = cKDTree(cells).query_pairs(1.0, p=np.inf, output_type="ndarray")
@@ -108,26 +129,24 @@ def measure(
         ):
             reasons.append("sensor_ids_invalid")
         else:
-            unique, counts = np.unique(ids[keep], return_counts=True)
+            kept_ids = ids[keep]
+            unique, counts = np.unique(kept_ids, return_counts=True)
             supported = unique[counts >= 10]
             if len(supported) < 2:
                 reasons.append("insufficient_views")
             else:
                 # Independently transformed scan planes should agree at both ends
                 # of the item. Occlusion can also trigger review, by design.
-                intervals = np.array(
-                    [
-                        [
-                            cleaned[ids[keep] == i, 1].min(),
-                            cleaned[ids[keep] == i, 1].max(),
-                        ]
-                        for i in supported
-                    ]
-                )
+                intervals = []
+                for i in supported:
+                    longitudinal = cleaned[kept_ids == i, 1]
+                    intervals.append([longitudinal.min(), longitudinal.max()])
+                intervals = np.array(intervals)
                 if np.ptp(intervals, axis=0).max() > 3.0:
                     reasons.append("views_inconsistent")
     payload = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
+        "dimension_convention": "obb_edges_descending",
         "measurement_id": measurement_id,
         "units": "mm",
         "status": "review" if reasons else "ok",
@@ -137,6 +156,9 @@ def measure(
         "measured_at": measured_at or datetime.now(timezone.utc).isoformat(),
         "item_id": item_id,
         "dimensions_mm": None,
+        "obb_dimensions_sorted_mm": None,
+        "height_z_mm": None,
+        "obb_axes": None,
         "candidate_box": None,
         "points_used": len(cleaned),
         "quality_checks": {
@@ -158,6 +180,9 @@ def measure(
                 payload["dimensions_mm"] = dict(
                     zip(["length", "width", "height"], box.extents.tolist())
                 )
+                payload["obb_dimensions_sorted_mm"] = box.extents.tolist()
+                payload["height_z_mm"] = float(cleaned[:, 2].max())
+                payload["obb_axes"] = box.axes.tolist()
         except ValueError:
             reasons.append("degenerate_cloud")
             payload["status"] = "review"

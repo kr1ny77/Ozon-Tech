@@ -82,14 +82,16 @@ def pca_box(points):
 
 
 MAX_HULL_FRAMES = 256
+MAX_SLSQP_VERTICES = 256
 RANDOM_FRAMES = Rotation.random(64, random_state=8128).as_matrix()
 
 
 def minimum_box(points):
     """Search the same fixed configuration in production and validation.
 
-    Hull orientations are capped independently of hull size. SLSQP optimizes
-    rotation and six supporting planes with explicit enclosure constraints.
+    Hull orientations are capped independently of hull size. Small hulls use
+    SLSQP with enclosure constraints; large hulls use bounded Powell search
+    over rotations, evaluating supporting planes on every hull vertex.
     Coordinates are normalized for consistent optimization tolerances.
     """
     p = validate_points(points)
@@ -129,6 +131,35 @@ def minimum_box(points):
 
     candidates.sort(key=preference)
     best = candidates[0]
+    if len(vertices) > MAX_SLSQP_VERTICES:
+        # Scalar search avoids a dense constrained solve on large hulls.
+        # Every evaluation retains the support extrema of the complete hull.
+        starts = []
+        for candidate in candidates:
+            if all(
+                np.max(np.abs(candidate.axes.T @ s.axes), axis=0).min() < 0.985
+                for s in starts
+            ):
+                starts.append(candidate)
+            if len(starts) == 3:
+                break
+        for start in starts:
+
+            def volume_at(rotation):
+                axes = Rotation.from_rotvec(rotation).as_matrix() @ start.axes
+                return np.prod(np.ptp(vertices @ axes, axis=0))
+
+            result = minimize(
+                volume_at,
+                np.zeros(3),
+                method="Powell",
+                options={"maxiter": 40, "maxfev": 400, "xtol": 1e-6, "ftol": 1e-9},
+            )
+            axes = Rotation.from_rotvec(result.x).as_matrix() @ start.axes
+            candidate = box_in_frame(vertices, axes, "hull_powell")
+            if preference(candidate) < preference(best):
+                best = candidate
+        return box_in_frame(p, best.axes, "hull_powell")
     starts = []
     local_starts = 12 if len(vertices) <= 64 else 6
     dispersed_starts = 8 if len(vertices) <= 64 else 2

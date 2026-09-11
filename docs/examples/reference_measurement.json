@@ -1,0 +1,13 @@
+{
+  "measurement_id": "demo-040-reference",
+  "resolution_of": "demo-040",
+  "operator_id": "demo-operator",
+  "instrument_id": "synthetic-reference",
+  "protocol_id": "synthetic-cuboid-200-100-40",
+  "method": "reference_3d",
+  "minimum_box_verified": true,
+  "data_origin": "synthetic",
+  "measured_at": "2026-09-09T00:03:00Z",
+  "obb_dimensions_sorted_mm": [200, 100, 40],
+  "uncertainty_mm": [0.5, 0.5, 0.5]
+}

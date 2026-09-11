@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.1",
+  "measurement_id": "demo-040-reference",
+  "resolution_of": "demo-040",
+  "item_id": null,
+  "units": "mm",
+  "status": "ok",
+  "reasons": [],
+  "dimension_convention": "obb_edges_descending",
+  "dimensions_mm": {
+    "length": 200.0,
+    "width": 100.0,
+    "height": 40.0
+  },
+  "obb_dimensions_sorted_mm": [
+    200.0,
+    100.0,
+    40.0
+  ],
+  "height_z_mm": null,
+  "obb_axes": null,
+  "candidate_box": null,
+  "algorithm_version": "0.3.0",
+  "measured_at": "2026-09-09T00:03:00Z",
+  "data_origin": "synthetic",
+  "measurement_method": "reference_3d",
+  "reference_evidence": {
+    "operator_id": "demo-operator",
+    "instrument_id": "synthetic-reference",
+    "protocol_id": "synthetic-cuboid-200-100-40",
+    "minimum_box_verified": true
+  },
+  "uncertainty_mm": [
+    0.5,
+    0.5,
+    0.5
+  ]
+}

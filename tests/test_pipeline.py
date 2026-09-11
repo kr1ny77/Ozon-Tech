@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 from functools import partial
-from ozon_dimensioner.pipeline import measure as measure_raw, AcquisitionQuality
+from ozon_dimensioner.pipeline import (
+    measure as measure_raw,
+    AcquisitionQuality,
+    cloud_components,
+)
 from ozon_dimensioner.simulation import (
     cuboid,
     simulate,
@@ -31,6 +35,31 @@ def test_profile_reconstruction_and_measurement(cloud):
     p = measure(cloud["points"], "test", quality(), cloud["sensor_ids"])
     assert p["status"] == "ok"
     assert dimension_errors(list(p["dimensions_mm"].values()), [80, 50, 30])["passed"]
+    assert p["dimension_convention"] == "obb_edges_descending"
+    assert p["obb_dimensions_sorted_mm"] == list(p["dimensions_mm"].values())
+    assert p["height_z_mm"] == pytest.approx(30.0)
+    np.testing.assert_allclose(
+        np.array(p["obb_axes"]).T @ np.array(p["obb_axes"]), np.eye(3), atol=1e-8
+    )
+
+
+def test_vertical_height_is_distinct_from_shortest_obb_edge():
+    data = simulate(cuboid((80, 50, 30)).placed((45, 0, 0)), noise_mm=0)
+    p = measure(data["points"], "tilted", quality(), data["sensor_ids"])
+    assert p["status"] == "ok"
+    assert p["height_z_mm"] > p["dimensions_mm"]["height"] + 20
+
+
+@pytest.mark.parametrize("offset", [0, 1_000_000_000])
+def test_grid_connectivity_preserves_diagonals_and_gaps(offset):
+    points = (
+        np.array(
+            [[-0.1, -0.1, -0.1], [0.1, 0.1, 0.1], [4.1, 4.1, 4.1], [16.1, 16.1, 16.1]]
+        )
+        + offset
+    )
+    assert cloud_components(points) == 2
+    assert cloud_components(np.array([[0, 0, 0], [4, 4, 4], [8_000_000, 0, 0]])) == 2
 
 
 @pytest.mark.parametrize(

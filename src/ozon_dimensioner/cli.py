@@ -12,6 +12,7 @@ from .geometry import aabb, pca_box, dimension_errors
 from .pipeline import measure, AcquisitionQuality
 from .simulation import cuboid, wedge, l_shape, cylinder, simulate, coverage_calculation
 from .outbox import Outbox, http_sender
+from .resolution import resolve_review
 
 
 def save_json(path, value):
@@ -201,7 +202,7 @@ def demo(output, seed=42):
         "limitations": [
             "Synthetic idealized geometry; no physical hardware measurements",
             "Qualification flags supplied by scenario; no material classifier",
-            "Hull/SLSQP OBB is approximate; arbitrary global optimum uncertified",
+            "Hybrid OBB search is approximate; arbitrary global optimum uncertified",
             "Camera occlusion, refraction, radiometry and conveyor mechanics omitted",
         ],
     }
@@ -240,6 +241,12 @@ def main():
     m.add_argument(
         "--motion-valid", action="store_true", help="Attest an independent motion check"
     )
+    r = sub.add_parser(
+        "resolve", help="Complete review from a reference measurement protocol"
+    )
+    r.add_argument("original")
+    r.add_argument("reference")
+    r.add_argument("--output", required=True)
     s = sub.add_parser("send")
     s.add_argument("input")
     s.add_argument("--database", default="outbox.sqlite")
@@ -264,6 +271,21 @@ def main():
                 calibration_id=args.calibration_id,
             )
         save_json(args.output, payload)
+    elif args.command == "resolve":
+        originals = json.loads(Path(args.original).read_text())
+        record = json.loads(Path(args.reference).read_text())
+        if isinstance(originals, list):
+            matches = [
+                p
+                for p in originals
+                if p.get("measurement_id") == record.get("resolution_of")
+            ]
+            if len(matches) != 1:
+                raise ValueError("Expected exactly one original measurement")
+            original = matches[0]
+        else:
+            original = originals
+        save_json(args.output, resolve_review(original, record))
     else:
         outbox = Outbox(args.database)
         try:

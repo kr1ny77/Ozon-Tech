@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ozon-dimensioner"
-version = "0.2.1"
+version = "0.3.0"
 description = "Conveyor dimensioning: geometric prototype and engineering report"
 requires-python = ">=3.11"
 dependencies = ["numpy==2.3.5", "scipy==1.16.3"]
